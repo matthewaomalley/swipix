@@ -19,6 +19,9 @@
       "bundleIdentifier": "com.groundup.swipix"
     },
     "android": {
+      "androidNavigationBar": {
+        "backgroundColor": "#00000000"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

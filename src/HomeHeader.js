@@ -1,19 +1,23 @@
 // Header.js
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons'; // Import the icon component
+import { MaterialIcons } from '@expo/vector-icons';
 
-const Header = ({ title, leftComponent, rightComponent, count }) => {
+const Header = ({ onNavigate, count }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={onNavigate}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <MaterialIcons name="delete" size={24} color="white" />
           <Text style={styles.countText}>{count}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
+
         <TouchableOpacity style={styles.textButton}>
-          <Text style={styles.buttonText}>Album dropdown</Text>{rightComponent}
+          <Text style={styles.buttonText}>Album dropdown</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -23,7 +27,7 @@ const Header = ({ title, leftComponent, rightComponent, count }) => {
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: '#f8f8f8',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     flexDirection: 'row',

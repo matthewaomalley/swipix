@@ -19,7 +19,8 @@ const Footer = ({ count }) => {
 
 const styles = StyleSheet.create({
     safeArea: {
-        backgroundColor: '#f8f8f8',
+        //backgroundColor: '#f8f8f8',
+        backgroundColor: 'transparent',
         width: '100%',
         
     },
@@ -27,7 +28,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#f8f8f8',
+        // backgroundColor: '#f8f8f8',
+        backgroundColor: 'transparent',
         padding: 5,
 
     },
@@ -40,7 +42,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     buttonText: {
-        color: 'black',
+        color: 'white',
         fontSize: 20,
     },
 });
