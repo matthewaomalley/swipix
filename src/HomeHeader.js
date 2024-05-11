@@ -1,8 +1,8 @@
-// Header.js
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
+// home screen header component
 const Header = ({ onNavigate, count }) => {
   return (
     <SafeAreaView style={styles.safeArea}>

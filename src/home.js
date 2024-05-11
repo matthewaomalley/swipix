@@ -4,12 +4,14 @@ import Swiper from 'react-native-deck-swiper';
 import * as MediaLibrary from 'expo-media-library';
 import HomeHeader from './HomeHeader';
 
+// main picture swipe screen
 export default function Home({ navigation }) {
   const [images, setImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
   const [deletedCount, setDeletedCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
+  // default request permissions modal when the user opens app (change later)
   useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -21,6 +23,7 @@ export default function Home({ navigation }) {
     })();
   }, []);
 
+  // load more photos if user hits a specified index
   const loadPhotos = async (after = null) => {
     const { assets, hasNextPage, endCursor } = await MediaLibrary.getAssetsAsync({
       first: 20,
@@ -34,28 +37,30 @@ export default function Home({ navigation }) {
     setHasMore(hasNextPage);
 
     if (hasNextPage) {
-      loadPhotos(endCursor); // Recursively load photos if there are more
+      loadPhotos(endCursor);
     }
   };
 
+  // set navigation options and show the header
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
       header: () => <HomeHeader
-      count={deletedCount}
-      onNavigate={() => navigation.navigate('Delete', { deletedImages })}
-    />
-    
+        count={deletedCount}
+        onNavigate={() => navigation.navigate('Delete', { deletedImages })}
+      />
+
     });
   }, [navigation, deletedCount]);
 
-  const handleSwipe = (cardIndex, direction) => {
+  // when a user swipes, if left, add to deleted imaged array and increment count
+  const handleSwipe = useCallback((cardIndex, direction) => {
     const removedImage = images[cardIndex];
     if (direction === 'left') {
       setDeletedImages(prev => [...prev, removedImage]);
       setDeletedCount(prev => prev + 1);
     }
-  };
+  }, [images]);  
 
   return (
     <SafeAreaView style={styles.container}>
