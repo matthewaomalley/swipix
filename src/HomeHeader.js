@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-// home screen header component
 const Header = ({ onNavigate, count }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="transparent" translucent={true} />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.button}
@@ -26,7 +26,6 @@ const Header = ({ onNavigate, count }) => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#f8f8f8',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
@@ -34,6 +33,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
+    backgroundColor: 'transparent', // Ensure this is also transparent
   },
   title: {
     color: 'black',
@@ -47,12 +47,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#ed6135',
+    backgroundColor: '#ed6135', // This will not be transparent
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  textButton: {
-    backgroundColor: 'transparent',
   },
   buttonText: {
     color: 'black',
