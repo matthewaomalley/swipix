@@ -13,6 +13,7 @@ export default function Home({ navigation }) {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [photoCount, setPhotoCount] = useState(0);
   const swiperRef = useRef(null);
   const footerOpacity = useRef(new Animated.Value(1)).current;
   const headerOpacity = useRef(new Animated.Value(1)).current;
@@ -22,6 +23,7 @@ export default function Home({ navigation }) {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status === 'granted') {
         loadAlbums();
+        getTotalPhotoCount();
         loadPhotos();
       } else {
         console.log('Permissions not granted');
@@ -46,10 +48,21 @@ export default function Home({ navigation }) {
         }
       }
 
-      // Add the "Recent" option at the top of the list
       setAlbums([{ id: 'recent', title: 'Recent' }, ...filteredAlbums]);
     } catch (error) {
       console.log('Error loading albums:', error);
+    }
+  };
+
+  const getTotalPhotoCount = async () => {
+    try {
+      const { totalCount } = await MediaLibrary.getAssetsAsync({
+        first: 1,
+        mediaType: 'photo',
+      });
+      setPhotoCount(totalCount);
+    } catch (error) {
+      console.log('Error getting total photo count:', error);
     }
   };
 
@@ -71,6 +84,7 @@ export default function Home({ navigation }) {
   const handleAlbumSelect = (album) => {
     setSelectedAlbum(album);
     setImages([]);
+    setPhotoCount(0); // Reset the photo count when a new album is selected
   };
 
   const handleSwipe = useCallback((cardIndex, direction) => {
@@ -79,40 +93,22 @@ export default function Home({ navigation }) {
       setDeletedImages(prev => [...prev, removedImage]);
       setDeletedCount(prev => prev + 1);
     }
-    if (!footerVisible) {
-      setFooterVisible(true);
-      Animated.timing(footerOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-    if (!headerVisible) {
-      setHeaderVisible(true);
-      Animated.timing(headerOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [images, footerVisible, footerOpacity, headerVisible, headerOpacity]);
+  }, [images]);
 
+  const animateOpacity = (opacity, toValue) => {
+    Animated.timing(opacity, {
+      toValue: toValue,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+  
   const toggleVisibility = () => {
-    const footerToValue = footerVisible ? 0 : 1;
-    const headerToValue = headerVisible ? 0 : 1;
-
-    Animated.timing(footerOpacity, {
-      toValue: footerToValue,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.timing(headerOpacity, {
-      toValue: headerToValue,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-
+    const toValue = footerVisible ? 0 : 1;
+  
+    animateOpacity(footerOpacity, toValue);
+    animateOpacity(headerOpacity, toValue);
+  
     setFooterVisible(!footerVisible);
     setHeaderVisible(!headerVisible);
   };
@@ -120,7 +116,7 @@ export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <Animated.View style={[styles.headerContainer, { opacity: headerOpacity }]}>
+        <Animated.View style={styles.headerContainer}>
           <HomeHeader
             count={deletedCount}
             onNavigate={() => navigation.navigate('Delete', { deletedImages })}
@@ -128,6 +124,9 @@ export default function Home({ navigation }) {
             albums={albums}
             onAlbumSelect={handleAlbumSelect}
             selectedAlbum={selectedAlbum ? selectedAlbum : { id: 'recent', title: 'Recent' }}
+            photoCount={photoCount}
+            headerOpacity={headerOpacity}
+            isVisible={headerVisible}
           />
         </Animated.View>
         <TouchableOpacity style={styles.content} activeOpacity={1} onPress={toggleVisibility}>

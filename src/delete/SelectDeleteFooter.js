@@ -5,9 +5,10 @@ const DeleteFooter = ({ photoCount, onDelete }) => {
     const [footerPhotoWord, setFooterPhotoWord] = useState('');
 
     useEffect(() => {
-       if (photoCount == 1) {
-        setFooterPhotoWord('Photo') } else { setFooterPhotoWord('Photos')}
-      }, []);
+        if (photoCount == 1) {
+            setFooterPhotoWord('Photo')
+        } else { setFooterPhotoWord('Photos') }
+    }, [photoCount]);
 
     const handleDeletePress = () => {
         Alert.alert(
