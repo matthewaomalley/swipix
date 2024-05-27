@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, Animated, StatusBar, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, Animated, StatusBar, Platform, Dimensions } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import * as MediaLibrary from 'expo-media-library';
 import HomeHeader from './HomeHeader';
 import HomeFooter from './HomeFooter';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function Home({ navigation }) {
+export default function Home({ navigation, route }) {
   const [images, setImages] = useState([]);
+  const [imageModes, setImageModes] = useState({});
   const [deletedImages, setDeletedImages] = useState([]);
   const [deletedCount, setDeletedCount] = useState(0);
   const [footerVisible, setFooterVisible] = useState(true);
@@ -14,9 +16,14 @@ export default function Home({ navigation }) {
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [photoCount, setPhotoCount] = useState(0);
+  const [albumCounts, setAlbumCounts] = useState({});
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const swiperRef = useRef(null);
   const footerOpacity = useRef(new Animated.Value(1)).current;
   const headerOpacity = useRef(new Animated.Value(1)).current;
+
+  const windowWidth = Dimensions.get('window').width;
+  const windowHeight = Dimensions.get('window').height;
 
   useEffect(() => {
     (async () => {
@@ -30,6 +37,29 @@ export default function Home({ navigation }) {
       }
     })();
   }, [selectedAlbum]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.deletedAlbumCounts) {
+        const newCounts = { ...albumCounts };
+        for (const [albumId, count] of Object.entries(route.params.deletedAlbumCounts)) {
+          if (newCounts[albumId] !== undefined) {
+            newCounts[albumId] -= count;
+          }
+        }
+        setAlbumCounts(newCounts);
+        navigation.setParams({ deletedAlbumCounts: undefined });
+      }
+
+      if (route.params?.deletionSuccessful) {
+        console.log('Yes, successful deletion');
+        setDeletedCount(0);
+        setDeletedImages([]);
+        console.log('Deleted count reset to 0');
+        navigation.setParams({ deletionSuccessful: undefined });
+      }
+    }, [route.params, albumCounts, navigation])
+  );
 
   const loadAlbums = async () => {
     try {
@@ -49,8 +79,35 @@ export default function Home({ navigation }) {
       }
 
       setAlbums([{ id: 'recent', title: 'Recent' }, ...filteredAlbums]);
+      fetchAlbumCounts([{ id: 'recent', title: 'Recent' }, ...filteredAlbums]);
     } catch (error) {
       console.log('Error loading albums:', error);
+    }
+  };
+
+  const fetchAlbumCounts = async (albums) => {
+    const counts = {};
+
+    try {
+      for (const album of albums) {
+        if (album.id === 'recent') {
+          const { totalCount } = await MediaLibrary.getAssetsAsync({
+            mediaType: 'photo',
+            first: 1,
+          });
+          counts[album.id] = totalCount;
+        } else {
+          const { totalCount } = await MediaLibrary.getAssetsAsync({
+            album: album.id,
+            mediaType: 'photo',
+            first: 1,
+          });
+          counts[album.id] = totalCount;
+        }
+      }
+      setAlbumCounts(counts);
+    } catch (error) {
+      console.error('Error fetching album counts:', error);
     }
   };
 
@@ -75,16 +132,36 @@ export default function Home({ navigation }) {
       sortBy: [MediaLibrary.SortBy.creationTime],
       descending: true,
     });
+  
+    const imageModes = {};
+    const windowAspectRatio = windowWidth / windowHeight;
+  
+    for (const asset of assets) {
+      const { width, height } = asset;
+      const imageAspectRatio = width / height;
+
+      const widthMultiplier = 1.5;
+      const heightMultiplier = 1.5;
+  
+      if ((width < windowWidth * widthMultiplier && height < windowHeight * heightMultiplier) ||
+          Math.abs(imageAspectRatio - windowAspectRatio) < 0.1) {
+        imageModes[asset.id] = 'cover';
+      } else {
+        imageModes[asset.id] = 'contain';
+      }
+    }
+  
     setImages(prev => after ? [...prev, ...assets] : assets);
+    setImageModes(prev => ({ ...prev, ...imageModes }));
+  
     if (hasNextPage) {
       loadPhotos(endCursor);
     }
   };
+  
 
   const handleAlbumSelect = (album) => {
     setSelectedAlbum(album);
-    setImages([]);
-    setPhotoCount(0); // Reset the photo count when a new album is selected
   };
 
   const handleSwipe = useCallback((cardIndex, direction) => {
@@ -93,6 +170,7 @@ export default function Home({ navigation }) {
       setDeletedImages(prev => [...prev, removedImage]);
       setDeletedCount(prev => prev + 1);
     }
+    setCurrentImageIndex(cardIndex + 1);
   }, [images]);
 
   const animateOpacity = (opacity, toValue) => {
@@ -102,16 +180,33 @@ export default function Home({ navigation }) {
       useNativeDriver: true,
     }).start();
   };
-  
+
   const toggleVisibility = () => {
     const toValue = footerVisible ? 0 : 1;
-  
+
     animateOpacity(footerOpacity, toValue);
     animateOpacity(headerOpacity, toValue);
-  
+
     setFooterVisible(!footerVisible);
     setHeaderVisible(!headerVisible);
   };
+
+  const handleNavigateToDelete = () => {
+    navigation.navigate('Delete', { 
+      deletedImages: deletedImages, 
+      totalPhotoCount: photoCount // Pass total photo count here
+    });
+  };
+
+  const handleTapCard = (cardIndex) => {
+    setCurrentImageIndex(cardIndex);
+  };
+
+  useEffect(() => {
+    if (images.length > 0 && currentImageIndex < images.length) {
+      const currentImage = images[currentImageIndex];
+    }
+  }, [currentImageIndex, images, imageModes, windowWidth, windowHeight]);
 
   return (
     <View style={styles.container}>
@@ -119,7 +214,7 @@ export default function Home({ navigation }) {
         <Animated.View style={styles.headerContainer}>
           <HomeHeader
             count={deletedCount}
-            onNavigate={() => navigation.navigate('Delete', { deletedImages })}
+            onNavigate={handleNavigateToDelete}
             visible={headerVisible}
             albums={albums}
             onAlbumSelect={handleAlbumSelect}
@@ -127,31 +222,32 @@ export default function Home({ navigation }) {
             photoCount={photoCount}
             headerOpacity={headerOpacity}
             isVisible={headerVisible}
+            albumCounts={albumCounts}
           />
         </Animated.View>
         <TouchableOpacity style={styles.content} activeOpacity={1} onPress={toggleVisibility}>
           {images.length > 0 ? (
             <Swiper
-              cards={images}
-              renderCard={(card) => (
-                <View style={styles.slide}>
-                  <Image source={{ uri: card.uri }} style={styles.image} resizeMode="cover" />
-                </View>
-              )}
-              ref={swiperRef}
-              onSwipedLeft={(cardIndex) => handleSwipe(cardIndex, 'left')}
-              onSwipedRight={(cardIndex) => handleSwipe(cardIndex, 'right')}
-              onTapCard={toggleVisibility}
-              backgroundColor={'black'}
-              stackSize={3}
-              infinite={false}
-              verticalSwipe={false}
-              horizontalSwipe={true}
-              disableTopSwipe
-              disableBottomSwipe
-              cardVerticalMargin={0}
-              cardHorizontalMargin={0}
-            />
+            cards={images}
+            renderCard={(card) => (
+              <View style={styles.slide}>
+                <Image source={{ uri: card.uri }} style={styles.image} resizeMode={imageModes[card.id]} />
+              </View>
+            )}
+            ref={swiperRef}
+            onSwipedLeft={(cardIndex) => handleSwipe(cardIndex, 'left')}
+            onSwipedRight={(cardIndex) => handleSwipe(cardIndex, 'right')}
+            onTapCard={toggleVisibility}
+            backgroundColor={'black'}
+            stackSize={3}
+            infinite={false}
+            verticalSwipe={false}
+            horizontalSwipe={true}
+            disableTopSwipe
+            disableBottomSwipe
+            cardVerticalMargin={0}
+            cardHorizontalMargin={0}
+          />
           ) : (
             <Text>No images found.</Text>
           )}

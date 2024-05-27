@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AlbumSelectModal from '../modals/AlbumSelectModal';
 import InfoModal from '../modals/InfoModal';
 
-const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selectedAlbum, photoCount }) => {
+const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selectedAlbum, photoCount, albumCounts }) => {
   const [albumModalVisible, setAlbumModalVisible] = useState(false);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [animatedOpacity] = useState(new Animated.Value(isVisible ? 1 : 0));
@@ -16,6 +16,10 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
       useNativeDriver: true,
     }).start();
   }, [isVisible]);
+
+  useEffect(() => { 
+    console.log(albumCounts)
+})
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -49,11 +53,9 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
         <Animated.View style={{ opacity: animatedOpacity, pointerEvents: isVisible ? 'auto' : 'none', flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
             style={[
-              styles.textButton, 
-              { opacity: count > 0 ? 0.5 : 1 }
+              styles.textButton
             ]}
             onPress={() => setAlbumModalVisible(true)} 
-            disabled={count > 0 || !isVisible}
           >
             <Text style={styles.buttonText}>
               {selectedAlbum ? selectedAlbum.title : 'Recents'}
@@ -75,6 +77,7 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
         onAlbumSelect={onAlbumSelect}
         photoCount={photoCount}
         selectedAlbum={selectedAlbum}
+        albumCounts={albumCounts}
       />
       <InfoModal
         isVisible={infoModalVisible}

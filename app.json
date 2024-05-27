@@ -19,6 +19,11 @@
       "bundleIdentifier": "com.groundup.swipix"
     },
     "android": {
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "MANAGE_EXTERNAL_STORAGE"
+      ],
       "androidNavigationBar": {
         "backgroundColor": "#00000000"
       },

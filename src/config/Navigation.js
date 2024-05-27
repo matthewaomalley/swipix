@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from '../home/Home';
 import SelectDelete from '../delete/SelectDelete';
+import Done from '../delete/Done.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,10 @@ function Navigation() {
         <Stack.Screen
           name="Delete"
           component={SelectDelete}
+        />
+        <Stack.Screen
+          name="Done"
+          component={Done}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,46 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as MediaLibrary from 'expo-media-library';
 
-const AlbumSelectModal = ({ isVisible, onClose, albums, onAlbumSelect, photoCount, selectedAlbum }) => {
-  const [albumCounts, setAlbumCounts] = useState({});
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isVisible) {
-      fetchAlbumCounts();
-    }
-  }, [isVisible]);
-
-  const fetchAlbumCounts = async () => {
-    setLoading(true);
-    const counts = {};
-
-    try {
-      for (const album of albums) {
-        if (album.id === 'recent') {
-          const { totalCount } = await MediaLibrary.getAssetsAsync({
-            mediaType: 'photo',
-            first: 1,
-          });
-          counts[album.id] = totalCount;
-        } else {
-          const { totalCount } = await MediaLibrary.getAssetsAsync({
-            album: album.id,
-            mediaType: 'photo',
-            first: 1,
-          });
-          counts[album.id] = totalCount;
-        }
-      }
-      setAlbumCounts(counts);
-    } catch (error) {
-      console.error('Error fetching album counts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const AlbumSelectModal = ({ isVisible, onClose, albums, onAlbumSelect, photoCount, selectedAlbum, albumCounts }) => {
 
   const renderAlbumItem = ({ item }) => {
     const isSelected = selectedAlbum && selectedAlbum.id === item.id;
@@ -76,16 +38,12 @@ const AlbumSelectModal = ({ isVisible, onClose, albums, onAlbumSelect, photoCoun
               <MaterialIcons name="close" size={24} color="black" />
             </TouchableOpacity>
           </View>
-          {loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
-          ) : (
-            <FlatList
-              data={albums}
-              renderItem={renderAlbumItem}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
+          <FlatList
+            data={albums}
+            renderItem={renderAlbumItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+          />
         </View>
       </View>
     </Modal>
