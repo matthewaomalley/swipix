@@ -4,6 +4,7 @@ import SubmitFooter from '../components/SubmitFooter';
 
 const Done = ({ route, navigation }) => {
     const { deletionSuccessful, deletedImagesCount, totalPhotoCount, deletedAlbumCounts } = route.params;
+    console.log(deletedImagesCount, totalPhotoCount, deletedAlbumCounts)
     const percentageDeleted = ((deletedImagesCount / totalPhotoCount) * 100).toFixed(2);
 
     return (

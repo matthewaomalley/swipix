@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AlbumSelectModal from '../modals/AlbumSelectModal';
 import InfoModal from '../modals/InfoModal';
 
-const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selectedAlbum, photoCount, albumCounts }) => {
+const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selectedAlbum, photoCount, albumCounts, disabled }) => {
   const [albumModalVisible, setAlbumModalVisible] = useState(false);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [animatedOpacity] = useState(new Animated.Value(isVisible ? 1 : 0));
@@ -16,10 +16,6 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
       useNativeDriver: true,
     }).start();
   }, [isVisible]);
-
-  useEffect(() => { 
-    console.log(albumCounts)
-})
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -33,7 +29,7 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
         },
       ]}>
         <View style={styles.trashButtonContainer}>
-          <TouchableOpacity
+        <TouchableOpacity
             style={[
               styles.button,
               {
@@ -41,10 +37,12 @@ const HomeHeader = ({ onNavigate, count, isVisible, albums, onAlbumSelect, selec
                   inputRange: [0, 1],
                   outputRange: ['rgba(0, 0, 0, 0.4)', '#ed6135'],
                 }),
+                opacity: disabled ? 0.7 : 1
               },
             ]}
             onPress={onNavigate}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            disabled={disabled}
           >
             <MaterialIcons name="delete" size={24} color="white" />
             <Text style={styles.countText}>{count}</Text>

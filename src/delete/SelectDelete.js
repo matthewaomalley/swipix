@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, FlatList, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Image, StyleSheet, FlatList, Dimensions, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import SelectDeleteHeader from './SelectDeleteHeader';
 import SubmitFooter from '../components/SubmitFooter';
 import * as MediaLibrary from 'expo-media-library';
@@ -9,13 +9,34 @@ const numColumns = 3;
 const imageSize = width / numColumns;
 
 const SelectDelete = ({ route, navigation }) => {
-    const { deletedImages, totalPhotoCount } = route.params;
+    const { deletedImages: initialDeletedImages, totalPhotoCount: initialTotalPhotoCount } = route.params;
+    const [deletedImages, setDeletedImages] = useState(initialDeletedImages || []);
+    const [recoveredImages, setRecoveredImages] = useState([]);
     const deletedImagesCount = deletedImages.length;
     const [permissionGranted, setPermissionGranted] = useState(false);
     const [loading, setLoading] = useState(false);
-
     const [deletedAlbumCounts, setDeletedAlbumCounts] = useState({});
+    const { recoveredImage: newRecoveredImage } = route.params || {};
+    const [recoveredImage, setRecoveredImage] = useState();
+    const [totalPhotoCount, setTotalPhotoCount] = useState(initialTotalPhotoCount);
 
+    useEffect(() => {
+        setTotalPhotoCount(totalPhotoCount - deletedImages.length);
+    }, [deletedImages]);
+
+    useEffect(() => {
+        if (newRecoveredImage && (!recoveredImage || newRecoveredImage.id !== recoveredImage.id)) {
+            setRecoveredImage(newRecoveredImage);
+            setRecoveredImages(prevImages => [...prevImages, newRecoveredImage]);
+    
+            // remove the recovered image from the deletedImages array
+            setDeletedImages(prevDeletedImages => {
+                return prevDeletedImages.filter(img => img.id !== newRecoveredImage.id);
+            });
+        }
+    }, [newRecoveredImage]);
+
+    // request permission to delete images
     useEffect(() => {
         const requestPermissions = async () => {
             const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -27,7 +48,7 @@ const SelectDelete = ({ route, navigation }) => {
             }
         };
         requestPermissions();
-    }, [deletedImages, navigation]);
+    }, [navigation]);
 
     useEffect(() => {
         const albumCounts = {};
@@ -82,14 +103,22 @@ const SelectDelete = ({ route, navigation }) => {
         <>
             <SelectDeleteHeader
                 title={`To Be Deleted (${deletedImagesCount})`}
-                onBackPress={() => navigation.goBack()}
+                onBackPress={() => {
+                    navigation.navigate('Home', { recoveredImages })
+                }}
             />
             <FlatList
                 data={deletedImages}
                 keyExtractor={item => item.id}
                 numColumns={numColumns}
                 renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => navigation.navigate('Recover', {
+                    image: item,
+                    navigateBackScreen: 'SelectDelete',
+                    deletedImages: deletedImages,
+                })}>
                     <Image source={{ uri: item.uri }} style={styles.image} />
+                </TouchableOpacity>
                 )}
                 contentContainerStyle={styles.container}
             />

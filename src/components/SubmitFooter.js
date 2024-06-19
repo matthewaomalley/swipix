@@ -7,7 +7,6 @@ const SubmitFooter = ({ actionType, photoCount, deletedImagesCount, totalPhotoCo
     const navigation = useNavigation();
 
     useEffect(() => {
-        console.log('photo count:', photoCount)
         if (photoCount === 1) {
             setFooterPhotoWord('Photo');
         } else {

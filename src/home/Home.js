@@ -26,6 +26,28 @@ export default function Home({ navigation, route }) {
   const windowHeight = Dimensions.get('window').height;
 
   useEffect(() => {
+    if (route.params?.recoveredImages) {
+      setImages(prevImages => [...route.params.recoveredImages, ...prevImages]);
+      navigation.setParams({ recoveredImages: undefined }); // Clear the param after using it
+  
+      // Remove recovered images from deletedImages
+      setDeletedImages(prevDeletedImages => {
+        return prevDeletedImages.filter(image => !route.params.recoveredImages.includes(image));
+      });
+  
+      // Decrement deletedCount by the number of recovered images
+      setDeletedCount(prevDeletedCount => prevDeletedCount - route.params.recoveredImages.length);
+    }
+  
+    // Reset count and deleted images when coming directly from recover screen
+    if (route.params?.fromRecoverScreen) {
+      setDeletedCount(0);
+      setDeletedImages([]);
+      navigation.setParams({ fromRecoverScreen: undefined }); // Clear the param after using it
+    }
+  }, [route.params, navigation]);
+
+  useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status === 'granted') {
@@ -194,7 +216,7 @@ export default function Home({ navigation, route }) {
   const handleNavigateToDelete = () => {
     navigation.navigate('Delete', { 
       deletedImages: deletedImages, 
-      totalPhotoCount: photoCount // Pass total photo count here
+      totalPhotoCount: photoCount
     });
   };
 
@@ -223,6 +245,8 @@ export default function Home({ navigation, route }) {
             headerOpacity={headerOpacity}
             isVisible={headerVisible}
             albumCounts={albumCounts}
+            disabled={deletedCount === 0}
+            
           />
         </Animated.View>
         <TouchableOpacity style={styles.content} activeOpacity={1} onPress={toggleVisibility}>
@@ -290,7 +314,7 @@ const styles = StyleSheet.create({
   },
   slide: {
     flex: 1,
-    backgroundColor: 'black', // Ensure each slide has a black background
+    backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
   },
