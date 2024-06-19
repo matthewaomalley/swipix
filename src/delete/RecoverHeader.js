@@ -7,11 +7,11 @@ const RecoverHeader = ({ onBackPress, onRecoverPress }) => {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backContainer} onPress={onBackPress}>
-                    <MaterialIcons style={styles.goBackIcon} name="arrow-back-ios" size={16} color="black" />
+                    <MaterialIcons style={styles.goBackIcon} name="arrow-back-ios" size={16} color="#ed6135" />
                     <Text style={styles.goBackText}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.recoverContainer} onPress={onRecoverPress}>
-                    <MaterialIcons style={styles.goBackIcon} name="support" size={22} color="black" />
+                    <MaterialIcons style={styles.goBackIcon} name="support" size={22} color="ed6135" />
                     <Text style={styles.recoverText}>Recover</Text>
                 </TouchableOpacity>
             </View>
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 10,
-        height: 62,
+        height: 56,
     },
     backContainer: {
         flexDirection: 'row',
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
         color: '#ed6135',
         fontSize: 18,
         marginLeft: 5,
+        marginBottom: 1,
     },
     goBackIcon: {
         marginLeft: 5,
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     goBackText: {
         marginBottom: 1,
         fontSize: 18,
-        color: 'black',
+        color: '#ed6135',
     },
 });
 

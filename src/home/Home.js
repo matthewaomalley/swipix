@@ -25,27 +25,41 @@ export default function Home({ navigation, route }) {
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
 
-  useEffect(() => {
-    if (route.params?.recoveredImages) {
-      setImages(prevImages => [...route.params.recoveredImages, ...prevImages]);
-      navigation.setParams({ recoveredImages: undefined }); // Clear the param after using it
-  
-      // Remove recovered images from deletedImages
-      setDeletedImages(prevDeletedImages => {
-        return prevDeletedImages.filter(image => !route.params.recoveredImages.includes(image));
-      });
-  
-      // Decrement deletedCount by the number of recovered images
-      setDeletedCount(prevDeletedCount => prevDeletedCount - route.params.recoveredImages.length);
-    }
-  
-    // Reset count and deleted images when coming directly from recover screen
-    if (route.params?.fromRecoverScreen) {
-      setDeletedCount(0);
-      setDeletedImages([]);
-      navigation.setParams({ fromRecoverScreen: undefined }); // Clear the param after using it
-    }
-  }, [route.params, navigation]);
+
+
+  // handle recovered images
+// handle recovered images
+useEffect(() => {
+  if (route.params?.recoveredImages) {
+    // Remove recovered images from deletedImages
+    const recoveredImageIds = route.params.recoveredImages.map(img => img.id);
+
+    setDeletedImages(prevDeletedImages => {
+      return prevDeletedImages.filter(image => !recoveredImageIds.includes(image.id));
+    });
+
+    // Decrement deletedCount by the number of recovered images
+    setDeletedCount(prevDeletedCount => prevDeletedCount - route.params.recoveredImages.length);
+
+    // Add recovered images back to the images array and remove duplicates
+    setImages(prevImages => {
+      const updatedImages = [...route.params.recoveredImages, ...prevImages];
+      return updatedImages.filter((image, index, self) =>
+        index === self.findIndex((img) => img.id === image.id)
+      );
+    });
+
+    navigation.setParams({ recoveredImages: undefined });
+  }
+
+  // Reset count and deleted images when coming directly from recover screen
+  if (route.params?.fromRecoverScreen) {
+    setDeletedCount(0);
+    setDeletedImages([]);
+    navigation.setParams({ fromRecoverScreen: undefined }); // Clear the param after using it
+  }
+}, [route.params, navigation]);
+
 
   useEffect(() => {
     (async () => {
